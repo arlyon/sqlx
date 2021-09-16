@@ -61,3 +61,26 @@ impl Decode<'_, MySql> for Vec<u8> {
         <&[u8] as Decode<MySql>>::decode(value).map(ToOwned::to_owned)
     }
 }
+
+impl Type<MySql> for [u8; 32] {
+    fn type_info() -> MySqlTypeInfo {
+        <[u8] as Type<MySql>>::type_info()
+    }
+
+    fn compatible(ty: &MySqlTypeInfo) -> bool {
+        <&[u8] as Type<MySql>>::compatible(ty)
+    }
+}
+
+impl Encode<'_, MySql> for [u8; 32] {
+    fn encode_by_ref(&self, buf: &mut Vec<u8>) -> IsNull {
+        <&[u8] as Encode<MySql>>::encode(&*self, buf)
+    }
+}
+
+impl Decode<'_, MySql> for [u8; 32] {
+    fn decode(value: MySqlValueRef<'_>) -> Result<Self, BoxDynError> {
+        use std::convert::TryInto;
+        <&[u8] as Decode<MySql>>::decode(value).map(|v| v.try_into().unwrap())
+    }
+}
