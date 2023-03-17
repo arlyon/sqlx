@@ -116,6 +116,7 @@ const OP_REMAINDER: &str = "Remainder";
 const OP_CONCAT: &str = "Concat";
 const OP_RESULT_ROW: &str = "ResultRow";
 const OP_HALT: &str = "Halt";
+const OP_HALT_IF_NULL: &str = "HaltIfNull";
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 struct ColumnType {
@@ -572,6 +573,14 @@ pub(super) fn explain(
                 OP_VARIABLE => {
                     // r[p2] = <value of variable>
                     state.r.insert(p2, RegDataType::Single(ColumnType::null()));
+                }
+
+                // if there is a value in p3, and the query passes, then
+                // we know that it is not nullable
+                OP_HALT_IF_NULL => {
+                    if let Some(RegDataType::Single(x)) = state.r.get_mut(&p3) {
+                        x.nullable = Some(false);
+                    }
                 }
 
                 OP_FUNCTION => {
